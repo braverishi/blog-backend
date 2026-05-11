@@ -10,7 +10,21 @@ const commentRoutes = require('./routes/comments');
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*', credentials: true }));
+const allowedOrigins = (process.env.CLIENT_ORIGIN || '*')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+      return cb(new Error('Not allowed by CORS: ' + origin));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
